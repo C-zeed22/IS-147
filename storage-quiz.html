@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Disk Storage — Practice Quiz</title>
+<style>
+  :root {
+    --bg: #0f1c2e;
+    --panel: #ffffff;
+    --ink: #1b2535;
+    --muted: #5b6779;
+    --accent: #1c7293;
+    --accent-dark: #065a82;
+    --good: #228b3a;
+    --good-bg: #e7f5ec;
+    --bad: #b3261e;
+    --bad-bg: #fdecea;
+    --border: #d9dee6;
+    --soft: #f4f6fa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #0f1c2e 0%, #1c7293 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  header.top {
+    color: #fff;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  header.top h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    letter-spacing: 0.2px;
+  }
+  header.top p {
+    margin: 0;
+    color: #cadcfc;
+    font-size: 14px;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .progress-bar {
+    height: 8px;
+    width: 100%;
+    background: var(--soft);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .topic-tag {
+    display: inline-block;
+    background: var(--soft);
+    color: var(--accent-dark);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .question {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: 8px 0 16px;
+  }
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .choice {
+    text-align: left;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+  }
+  .choice:hover:not(.locked) {
+    border-color: var(--accent);
+    background: var(--soft);
+  }
+  .choice .letter {
+    flex: 0 0 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background: var(--soft);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent-dark);
+  }
+  .choice.correct {
+    border-color: var(--good);
+    background: var(--good-bg);
+  }
+  .choice.correct .letter {
+    background: var(--good);
+    color: #fff;
+  }
+  .choice.wrong {
+    border-color: var(--bad);
+    background: var(--bad-bg);
+  }
+  .choice.wrong .letter {
+    background: var(--bad);
+    color: #fff;
+  }
+  .choice.locked { cursor: default; }
+  .feedback {
+    margin-top: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.good {
+    background: var(--good-bg);
+    color: #155724;
+    border-left: 4px solid var(--good);
+    display: block;
+  }
+  .feedback.bad {
+    background: var(--bad-bg);
+    color: #6b1f1a;
+    border-left: 4px solid var(--bad);
+    display: block;
+  }
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    gap: 12px;
+  }
+  button.btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  button.btn:hover { background: var(--accent-dark); }
+  button.btn:disabled {
+    background: #b8c2cf;
+    cursor: not-allowed;
+  }
+  button.btn.secondary {
+    background: #fff;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--accent);
+  }
+  button.btn.secondary:hover { background: var(--soft); }
+  .score-line {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  /* Results screen */
+  .results { text-align: center; padding: 12px 8px; }
+  .results .big-score {
+    font-size: 60px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    line-height: 1;
+    margin: 8px 0;
+  }
+  .results h2 { margin: 4px 0 4px; font-size: 22px; }
+  .results .sub { color: var(--muted); margin-bottom: 24px; }
+  .topic-breakdown {
+    text-align: left;
+    margin: 20px 0;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .topic-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .topic-row:last-child { border-bottom: none; }
+  .review-list {
+    text-align: left;
+    margin-top: 18px;
+  }
+  .review-item {
+    border-left: 3px solid var(--bad);
+    background: #fff8f8;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .review-item .rq { font-weight: 600; margin-bottom: 4px; }
+  .review-item .ra { color: var(--bad); }
+  .review-item .rc { color: var(--good); }
+  .review-item .re { color: var(--muted); margin-top: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Disk Storage — Practice Quiz</h1>
+    <p>42 multiple-choice questions, randomized order. Pick an answer to see the explanation.</p>
+  </header>
+
+  <main id="app" class="card">
+    <!-- dynamic content -->
+  </main>
+</div>
+
+<script>
+const QUESTIONS_RAW = [
+  {
+    "topic": "Storage Media",
+    "q": "Which form of storage is described as the fastest and most costly, and is volatile?",
+    "choices": ["Main memory", "Cache", "Flash memory", "Magnetic disk"],
+    "answer": 1,
+    "explanation": "Cache is the fastest and most costly form of storage, and its contents are usually lost on power failure or system crash."
+  },
+  {
+    "topic": "Storage Media",
+    "q": "What is the typical access time for main memory?",
+    "choices": ["10s to 100s of nanoseconds", "10s to 100s of microseconds", "10s to 100s of milliseconds", "A few seconds"],
+    "answer": 0,
+    "explanation": "Main memory has access times of 10s to 100s of nanoseconds (1 ns = 10⁻⁹ s)."
+  },
+  {
+    "topic": "Storage Media",
+    "q": "Why is main memory generally not used to store an entire database?",
+    "choices": ["It is too slow", "It is non-volatile", "It is too small (and expensive) to fit the whole database", "It uses sequential access only"],
+    "answer": 2,
+    "explanation": "Main memory is too small (and too expensive) to store the entire database, even though it has fast access."
+  },
+  {
+    "topic": "Storage Media",
+    "q": "Approximately how have main-memory capacities and costs trended, per the slides?",
+    "choices": ["Capacities up factor of 10 every year", "Capacities up factor of 2 every 2-3 years; costs decreased rapidly", "Costs unchanged for a decade", "Capacities flat; costs rising"],
+    "answer": 1,
+    "explanation": "The slides note capacities have gone up and costs decreased steadily — roughly a factor of 2 every 2 to 3 years."
+  },
+  {
+    "topic": "Flash Memory",
+    "q": "Which statement about flash memory is TRUE?",
+    "choices": ["Data is lost when power fails", "It supports unlimited write/erase cycles", "Erasing has to be done to an entire bank of memory", "Writes are faster than reads"],
+    "answer": 2,
+    "explanation": "Flash data survives power failure, supports only a limited number of write/erase cycles, and erasing must be performed across an entire bank."
+  },
+  {
+    "topic": "Flash Memory",
+    "q": "How does flash memory's read/write speed compare to main memory?",
+    "choices": ["Reads and writes both faster than main memory", "Reads roughly as fast as main memory; writes are slow (microseconds)", "Reads are slow; writes are fast", "Identical performance to main memory"],
+    "answer": 1,
+    "explanation": "Reads on flash are roughly as fast as main memory, but writes take a few microseconds and erases are slower."
+  },
+  {
+    "topic": "Flash Memory",
+    "q": "Flash memory is widely used in:",
+    "choices": ["Mainframe tape libraries", "Embedded devices such as digital cameras", "Optical drives", "CRT monitors"],
+    "answer": 1,
+    "explanation": "Flash memory is widely used in embedded devices like digital cameras."
+  },
+  {
+    "topic": "Magnetic Disk",
+    "q": "Which medium is described as the primary medium for the long-term storage of data, typically holding the entire database?",
+    "choices": ["Cache", "Flash memory", "Magnetic disk", "Tape"],
+    "answer": 2,
+    "explanation": "Magnetic disk is the primary long-term storage medium and typically stores the entire database."
+  },
+  {
+    "topic": "Magnetic Disk",
+    "q": "Magnetic disk is described as which type of access?",
+    "choices": ["Sequential-access", "Direct-access", "Burst-only access", "Volatile-access"],
+    "answer": 1,
+    "explanation": "Magnetic disk is direct-access — data can be read in any order, unlike magnetic tape."
+  },
+  {
+    "topic": "Magnetic Disk",
+    "q": "What range of common magnetic disk capacities does the slide give?",
+    "choices": ["100-500 MB, max 1 GB", "1-2 TB, max 10 TB", "Roughly 2-4 TB, max 6 TB", "20-40 TB, max 100 TB"],
+    "answer": 2,
+    "explanation": "Common capacities cited are roughly 2-4 TB, with a max around 6 TB."
+  },
+  {
+    "topic": "Optical Storage",
+    "q": "What does WORM stand for in the context of optical disks?",
+    "choices": ["Write-only, read-multiple", "Write-once, read-many", "Wireless optical resource memory", "Write-on, read-mode"],
+    "answer": 1,
+    "explanation": "WORM = Write-Once, Read-Many. CD-R, DVD-R, and Blu-ray are WORM examples used for archival storage."
+  },
+  {
+    "topic": "Optical Storage",
+    "q": "Which of these is NOT a multiple-write optical format?",
+    "choices": ["CD-RW", "DVD-RW", "DVD-RAM", "CD-R"],
+    "answer": 3,
+    "explanation": "CD-R is write-once (WORM). CD-RW, DVD-RW, DVD-RAM, and Blu-ray BD-XL are multiple-write."
+  },
+  {
+    "topic": "Optical Storage",
+    "q": "According to the slide, the capacity range for Blu-ray is approximately:",
+    "choices": ["640 MB", "4.7 to 17 GB", "50 to 128 GB", "1 to 2 TB"],
+    "answer": 2,
+    "explanation": "CD-ROM ≈ 640 MB; DVD ≈ 4.7-17 GB; Blu-ray ≈ 50-128 GB."
+  },
+  {
+    "topic": "Optical Storage",
+    "q": "Compared with magnetic disk, optical storage:",
+    "choices": ["Has faster reads and writes", "Has reads and writes slower than magnetic disk", "Is volatile", "Has no archival use"],
+    "answer": 1,
+    "explanation": "Optical reads and writes are slower than magnetic disk."
+  },
+  {
+    "topic": "Tape Storage",
+    "q": "Tape storage is primarily used for:",
+    "choices": ["Real-time database access", "Backup (recovering from disk failure) and archival data", "Caching memory", "Booting the operating system"],
+    "answer": 1,
+    "explanation": "Tape is non-volatile, sequential-access, and primarily used for backup and archival."
+  },
+  {
+    "topic": "Tape Storage",
+    "q": "How is tape access classified?",
+    "choices": ["Random-access", "Direct-access", "Sequential-access (much slower than disk)", "Volatile-access"],
+    "answer": 2,
+    "explanation": "Tape is sequential-access and much slower than disk."
+  },
+  {
+    "topic": "Tape Storage",
+    "q": "Which is TRUE about tape economics, per the slides?",
+    "choices": ["Tape and drives are both very expensive", "Storage costs are much cheaper than disk, but drives are expensive", "Drives are cheap; tapes are expensive", "Both are cheaper than every other medium"],
+    "answer": 1,
+    "explanation": "Removable tapes make storage cost much cheaper than disk per unit, but the drives themselves are expensive."
+  },
+  {
+    "topic": "Storage Hierarchy",
+    "q": "Primary storage in the hierarchy is characterized by:",
+    "choices": ["Slowest access, non-volatile", "Fastest media, but volatile (cache, main memory)", "Sequential-access only", "Removable media"],
+    "answer": 1,
+    "explanation": "Primary storage = fastest but volatile (cache, main memory)."
+  },
+  {
+    "topic": "Storage Hierarchy",
+    "q": "Secondary storage is also called:",
+    "choices": ["On-line storage", "Off-line storage", "Cache", "Tertiary storage"],
+    "answer": 0,
+    "explanation": "Secondary = on-line storage. Examples: flash memory, magnetic disks."
+  },
+  {
+    "topic": "Storage Hierarchy",
+    "q": "Which is an example of tertiary (off-line) storage?",
+    "choices": ["Flash memory", "Magnetic disk", "Magnetic tape / optical storage", "Cache"],
+    "answer": 2,
+    "explanation": "Tertiary storage is off-line, slowest, non-volatile — e.g., magnetic tape and optical storage."
+  },
+  {
+    "topic": "Storage Hierarchy",
+    "q": "Which pairing of level and example is correct?",
+    "choices": ["Primary — magnetic tape", "Secondary — flash memory / magnetic disks", "Tertiary — main memory", "Primary — magnetic disk"],
+    "answer": 1,
+    "explanation": "Secondary (on-line) storage examples include flash memory and magnetic disks."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "On a typical hard disk, approximately how many tracks are on a single platter?",
+    "choices": ["Over 100", "Over 1,000", "Over 16,000", "Over 1,000,000"],
+    "answer": 2,
+    "explanation": "Typical hard disks have over 16,000 tracks per platter."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "Typical sector size on a magnetic disk is:",
+    "choices": ["64 bytes", "256 bytes", "512 bytes", "4096 bytes"],
+    "answer": 2,
+    "explanation": "Sector size is typically 512 bytes — the smallest unit that can be read or written."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "Typical sectors per track on modern disks range from:",
+    "choices": ["50 to 100", "200 (inner) to 400 (outer)", "1,000 to 10,000", "Always exactly 512"],
+    "answer": 1,
+    "explanation": "About 200 sectors per track on inner tracks, up to ~400 on outer tracks."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "What is the smallest unit of data that can be read from or written to a magnetic disk?",
+    "choices": ["Track", "Sector", "Platter", "Cylinder"],
+    "answer": 1,
+    "explanation": "A sector is the smallest unit that can be read or written."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "A typical head-disk assembly contains:",
+    "choices": ["A single platter", "Typically 2 to 4 platters on a single spindle", "10 to 20 platters", "50+ platters"],
+    "answer": 1,
+    "explanation": "Multiple platters share a spindle — typically 2 to 4."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "All of the following are functions of the disk controller EXCEPT:",
+    "choices": ["Accepts high-level read/write commands", "Moves the disk arm to the correct track", "Encrypts user account passwords", "Remaps bad sectors"],
+    "answer": 2,
+    "explanation": "The disk controller handles commands, arm movement, verification, and bad-sector remapping — not user password encryption."
+  },
+  {
+    "topic": "Magnetic Disk Mechanism",
+    "q": "How does the disk controller verify a successful write?",
+    "choices": ["Sends a checksum to the OS", "Reads back the sector after writing it", "Asks the user to confirm", "Uses optical verification"],
+    "answer": 1,
+    "explanation": "The controller reads back the sector after writing to ensure success."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Disk access time is composed of:",
+    "choices": ["Seek time + rotational latency", "Seek time + transfer rate", "Rotational latency + cache miss time", "Just seek time"],
+    "answer": 0,
+    "explanation": "Access time = seek time + rotational latency. Data-transfer rate is a separate measure."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Average seek time is approximately:",
+    "choices": ["Equal to worst-case seek time", "Twice the worst-case seek time", "1/2 of the worst-case seek time", "Independent of head position"],
+    "answer": 2,
+    "explanation": "Average seek time ≈ ½ of worst-case seek time."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Typical seek time on hard disks is:",
+    "choices": ["4 to 10 nanoseconds", "4 to 10 microseconds", "4 to 10 milliseconds", "4 to 10 seconds"],
+    "answer": 2,
+    "explanation": "Typical seek time is 4-10 ms."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Typical rotational speeds for magnetic disks are:",
+    "choices": ["1,000 to 2,000 RPM", "5,400 to 15,000 RPM", "30,000 to 50,000 RPM", "100 to 500 RPM"],
+    "answer": 1,
+    "explanation": "Disks spin at roughly 5,400 to 15,000 RPM, giving 4-11 ms rotational latency."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Average rotational latency equals:",
+    "choices": ["A full rotation of the disk", "1/2 of a full rotation", "1/4 of a full rotation", "Twice a full rotation"],
+    "answer": 1,
+    "explanation": "On average, you wait ½ of a full rotation for the right sector to come under the head."
+  },
+  {
+    "topic": "Disk Performance",
+    "q": "Typical magnetic-disk data-transfer rate is approximately:",
+    "choices": ["5-10 MB/sec", "50 to 120 MB/sec", "500-1000 MB/sec", "10 GB/sec"],
+    "answer": 1,
+    "explanation": "Typical magnetic disk data-transfer rate is about 50-120 MB/sec."
+  },
+  {
+    "topic": "SSD",
+    "q": "Solid State Drives (SSDs) are based on:",
+    "choices": ["Spinning magnetic platters", "Optical lasers", "Flash memory (NAND blocks) with no moving parts", "Volatile DRAM only"],
+    "answer": 2,
+    "explanation": "SSDs are based on flash memory — NAND blocks — and contain no moving parts."
+  },
+  {
+    "topic": "SSD",
+    "q": "Why does an SSD need wear leveling?",
+    "choices": ["NAND blocks overheat", "Re-writing the same block repeatedly wears it out faster than others", "RPM varies between blocks", "Optical surfaces degrade with use"],
+    "answer": 1,
+    "explanation": "If a block is written repeatedly it wears out faster, so the controller spreads writes across all blocks."
+  },
+  {
+    "topic": "SSD",
+    "q": "How does wear leveling work?",
+    "choices": ["By compressing data before writing", "By distributing writes evenly across all flash blocks", "By caching writes in RAM and never flushing them", "By slowing down all writes uniformly"],
+    "answer": 1,
+    "explanation": "The SSD controller distributes writes evenly across blocks so they all wear at roughly the same rate."
+  },
+  {
+    "topic": "SSD",
+    "q": "Which is NOT typically a function of the SSD controller?",
+    "choices": ["Error correction", "Wear leveling", "Bad block mapping", "Spindle motor control"],
+    "answer": 3,
+    "explanation": "SSDs have no spindle. The controller handles error correction, wear leveling, bad block mapping, and encryption."
+  },
+  {
+    "topic": "SSD vs HDD",
+    "q": "Per the comparison slide, typical SSD OS boot time is:",
+    "choices": ["1-2 sec", "10-13 sec", "30-40 sec", "60+ sec"],
+    "answer": 1,
+    "explanation": "SSD: 10-13 sec; HDD: 30-40 sec."
+  },
+  {
+    "topic": "SSD vs HDD",
+    "q": "Per the comparison slide, HDD access time is approximately:",
+    "choices": ["~0.1 ms", "~2.9 to 12 ms", "~30 ms", "~100 ms"],
+    "answer": 1,
+    "explanation": "SSD ≈ 0.1 ms; HDD ≈ 2.9-12 ms."
+  },
+  {
+    "topic": "SSD vs HDD",
+    "q": "Per the slide, how does SSD cost-per-GB compare to HDD?",
+    "choices": ["Cheaper than HDD", "About the same", "More expensive (~$0.35/GB vs ~$0.05/GB for HDD)", "Free"],
+    "answer": 2,
+    "explanation": "SSDs are roughly $0.35/GB vs ~$0.05/GB for HDDs in the comparison."
+  },
+  {
+    "topic": "SSD vs HDD",
+    "q": "Per the comparison, a key reliability concern listed for SSDs is that they:",
+    "choices": ["Suffer from head crashes", "Cannot survive multiple power failures", "Are vulnerable to magnetic interference", "Have moving parts that wear quickly"],
+    "answer": 1,
+    "explanation": "The slide notes SSD reliability is good, but they cannot survive multiple power failures; HDDs have improved 9-11 year lifetimes."
+  }
+]
+;
+
+// --- state ---
+let questions = [];
+let idx = 0;
+let answered = []; // parallel array of user's chosen index, or null
+let correctCount = 0;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function init() {
+  // Shuffle question order, and shuffle choices within each question (preserving correct index)
+  questions = shuffle(QUESTIONS_RAW).map(q => {
+    const indices = q.choices.map((_, i) => i);
+    const shuffled = shuffle(indices);
+    const newChoices = shuffled.map(i => q.choices[i]);
+    const newAnswer = shuffled.indexOf(q.answer);
+    return { ...q, choices: newChoices, answer: newAnswer };
+  });
+  idx = 0;
+  answered = new Array(questions.length).fill(null);
+  correctCount = 0;
+  render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (idx >= questions.length) {
+    renderResults();
+    return;
+  }
+  const q = questions[idx];
+  const userAns = answered[idx];
+  const letters = ['A','B','C','D','E','F'];
+
+  app.innerHTML = `
+    <div class="progress-bar"><div class="progress-fill" style="width:${(idx / questions.length) * 100}%"></div></div>
+    <div class="meta">
+      <span class="topic-tag">${q.topic}</span>
+      <span>Question ${idx + 1} of ${questions.length} &middot; Score: ${correctCount}</span>
+    </div>
+    <div class="question">${q.q}</div>
+    <div class="choices" id="choices">
+      ${q.choices.map((c, i) => `
+        <button class="choice" data-i="${i}">
+          <span class="letter">${letters[i]}</span>
+          <span>${c}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="controls">
+      <button class="btn secondary" id="restart">Restart quiz</button>
+      <button class="btn" id="next" disabled>${idx === questions.length - 1 ? 'See results' : 'Next →'}</button>
+    </div>
+  `;
+
+  document.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => onAnswer(parseInt(btn.dataset.i, 10)));
+  });
+  document.getElementById('next').addEventListener('click', () => { idx++; render(); });
+  document.getElementById('restart').addEventListener('click', () => {
+    if (confirm('Restart with a fresh shuffle?')) init();
+  });
+
+  // If already answered, lock state
+  if (userAns !== null) {
+    lockChoices(userAns);
+  }
+}
+
+function onAnswer(choiceIdx) {
+  if (answered[idx] !== null) return;
+  answered[idx] = choiceIdx;
+  const q = questions[idx];
+  if (choiceIdx === q.answer) correctCount++;
+  lockChoices(choiceIdx);
+  document.getElementById('next').disabled = false;
+}
+
+function lockChoices(choiceIdx) {
+  const q = questions[idx];
+  const choices = document.querySelectorAll('.choice');
+  choices.forEach((btn, i) => {
+    btn.classList.add('locked');
+    if (i === q.answer) btn.classList.add('correct');
+    if (i === choiceIdx && choiceIdx !== q.answer) btn.classList.add('wrong');
+  });
+  const fb = document.getElementById('feedback');
+  if (choiceIdx === q.answer) {
+    fb.className = 'feedback good';
+    fb.innerHTML = `<strong>Correct.</strong> ${q.explanation}`;
+  } else {
+    fb.className = 'feedback bad';
+    fb.innerHTML = `<strong>Not quite.</strong> The answer is <em>${q.choices[q.answer]}</em>. ${q.explanation}`;
+  }
+}
+
+function renderResults() {
+  const app = document.getElementById('app');
+  const total = questions.length;
+  const pct = Math.round((correctCount / total) * 100);
+
+  // Topic breakdown
+  const byTopic = {};
+  questions.forEach((q, i) => {
+    if (!byTopic[q.topic]) byTopic[q.topic] = { right: 0, total: 0 };
+    byTopic[q.topic].total += 1;
+    if (answered[i] === q.answer) byTopic[q.topic].right += 1;
+  });
+
+  // Wrong answers for review
+  const wrong = questions
+    .map((q, i) => ({ q, user: answered[i] }))
+    .filter(({ q, user }) => user !== q.answer);
+
+  let msg;
+  if (pct >= 90) msg = "Excellent — you've got this.";
+  else if (pct >= 75) msg = "Strong showing. A quick review and you're set.";
+  else if (pct >= 60) msg = "Solid foundation. Review the misses below.";
+  else msg = "Worth another pass through the deck. Review the answers below.";
+
+  app.innerHTML = `
+    <div class="results">
+      <h2>Quiz complete</h2>
+      <div class="big-score">${correctCount} / ${total}</div>
+      <div class="sub">${pct}% — ${msg}</div>
+      <div class="topic-breakdown">
+        <strong>By topic</strong>
+        ${Object.entries(byTopic).map(([t, v]) => `
+          <div class="topic-row"><span>${t}</span><span>${v.right} / ${v.total}</span></div>
+        `).join('')}
+      </div>
+      ${wrong.length ? `
+        <div class="review-list">
+          <strong>Review these (${wrong.length})</strong>
+          ${wrong.map(({ q, user }) => `
+            <div class="review-item">
+              <div class="rq">${q.q}</div>
+              <div class="ra">Your answer: ${user === null ? '—' : q.choices[user]}</div>
+              <div class="rc">Correct: ${q.choices[q.answer]}</div>
+              <div class="re">${q.explanation}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '<div style="margin-top:18px;color:var(--good);font-weight:600;">Perfect score!</div>'}
+      <div class="controls" style="justify-content:center;margin-top:20px;">
+        <button class="btn" id="again">Take it again</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('again').addEventListener('click', init);
+}
+
+init();
+</script>
+</body>
+</html>
